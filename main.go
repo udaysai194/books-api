@@ -14,13 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Book struct {
-	Id     uint    `json:"id"`
-	Title  string  `json:"title"`
-	Author string  `json:"author"`
-	Price  float64 `json:"price"`
-}
-
 type Repository struct {
 	DB *gorm.DB
 }
@@ -32,9 +25,8 @@ func handleError(err error, msg string) {
 	}
 }
 
-func main() {
-
-	err := godotenv.Load(".env")
+func configure(envFile string) (*storage.Config) {
+	err := godotenv.Load(envFile)
 	handleError(err, "could not load .env file")
 
 	config := &storage.Config{
@@ -45,6 +37,13 @@ func main() {
 		DBName:   os.Getenv("DB_NAME"),
 		SSLMode:  os.Getenv("DB_SSLMODE"),
 	}
+
+	return config
+}
+
+func main() {
+
+	config := configure("mac.env")
 
 	db, err := storage.Connect(config)
 	handleError(err, "could not connect to the database")
@@ -63,23 +62,44 @@ func main() {
 }
 
 func (r *Repository) SetupRoutes(router *gin.Engine) {
-	router.POST("/create_books", r.AddBook)
+	router.POST("/add-books", r.AddBooks)
 	router.GET("/books", r.GetBooks)
+	router.DELETE("/delete-book/:id", r.DeleteBookByID)
+	router.GET("/book/:id", r.GetBookByID)
 }
 
 func (r *Repository) GetBooks(c *gin.Context) {
-	bookModels := &[]Book{}
-	err := r.DB.Find(&bookModels)
-	fmt.Println(bookModels)
+	books := &[]models.Book{}
+	err := r.DB.Find(&books)
 	handleError(err.Error, "no books found in database")
-	c.JSON(http.StatusOK, bookModels)
+	c.JSON(http.StatusOK, books)
 }
 
-func (r *Repository) AddBook(c *gin.Context) {
-	book := Book{}
+func (r *Repository) AddBooks(c *gin.Context) {
+	books := &[]models.Book{}
 
-	err := c.BindJSON(&book)
+	err := c.BindJSON(&books)
 	handleError(err, "cant bind the books")
-	err = r.DB.Create(&book).Error
+	err = r.DB.Create(&books).Error
 	handleError(err, "cant POST books")
+}
+
+func (r *Repository) GetBookByID(c *gin.Context) {
+	book := models.Book{}
+
+	id := c.Param("id")
+	err := r.DB.Where("id = ?", id).First(&book).Error
+	handleError(err, "book with the given id not found")
+
+	c.JSON(http.StatusOK, book)
+}
+
+func (r *Repository) DeleteBookByID(c *gin.Context) {
+	book := models.Book{}
+
+	id := c.Param("id")
+	err := r.DB.Delete(book, id).Error
+	handleError(err, "book with the given id not found")
+
+	c.JSON(http.StatusOK, gin.H{"msg":"this worked"})
 }

@@ -14,13 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Book struct {
-	Id     uint    `json:"id"`
-	Title  string  `json:"title"`
-	Author string  `json:"author"`
-	Price  float64 `json:"price"`
-}
-
 type Repository struct {
 	DB *gorm.DB
 }
@@ -32,9 +25,8 @@ func handleError(err error, msg string) {
 	}
 }
 
-func main() {
-
-	err := godotenv.Load(".env")
+func configure(envFile string) storage.Config {
+	err := godotenv.Load(envFile)
 	handleError(err, "could not load .env file")
 
 	config := &storage.Config{
@@ -45,6 +37,13 @@ func main() {
 		DBName:   os.Getenv("DB_NAME"),
 		SSLMode:  os.Getenv("DB_SSLMODE"),
 	}
+
+	return config
+}
+
+func main() {
+
+	config := configure(".env")
 
 	db, err := storage.Connect(config)
 	handleError(err, "could not connect to the database")
@@ -63,21 +62,19 @@ func main() {
 }
 
 func (r *Repository) SetupRoutes(router *gin.Engine) {
-	router.POST("/create_books", r.AddBook)
+	router.POST("/add-book", r.AddBook)
 	router.GET("/books", r.GetBooks)
 }
 
 func (r *Repository) GetBooks(c *gin.Context) {
-	bookModels := &[]Book{}
+	bookModels := &[]models.Book{}
 	err := r.DB.Find(&bookModels)
-	fmt.Println(bookModels)
 	handleError(err.Error, "no books found in database")
 	c.JSON(http.StatusOK, bookModels)
 }
 
 func (r *Repository) AddBook(c *gin.Context) {
-	book := Book{}
-
+	book := models.Book{}
 	err := c.BindJSON(&book)
 	handleError(err, "cant bind the books")
 	err = r.DB.Create(&book).Error

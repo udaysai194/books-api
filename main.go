@@ -25,8 +25,9 @@ func handleError(err error, msg string) {
 	}
 }
 
-func configure(envFile string) (*storage.Config) {
-	err := godotenv.Load(envFile)
+func main() {
+
+	err := godotenv.Load(".env")
 	handleError(err, "could not load .env file")
 
 	config := &storage.Config{
@@ -37,13 +38,6 @@ func configure(envFile string) (*storage.Config) {
 		DBName:   os.Getenv("DB_NAME"),
 		SSLMode:  os.Getenv("DB_SSLMODE"),
 	}
-
-	return config
-}
-
-func main() {
-
-	config := configure("mac.env")
 
 	db, err := storage.Connect(config)
 	handleError(err, "could not connect to the database")
@@ -62,23 +56,24 @@ func main() {
 }
 
 func (r *Repository) SetupRoutes(router *gin.Engine) {
-	router.POST("/add-books", r.AddBooks)
+	router.POST("/create_books", r.AddBook)
 	router.GET("/books", r.GetBooks)
 	router.DELETE("/delete-book/:id", r.DeleteBookByID)
 	router.GET("/book/:id", r.GetBookByID)
 }
 
 func (r *Repository) GetBooks(c *gin.Context) {
-	books := &[]models.Book{}
-	err := r.DB.Find(&books)
+	bookModels := &[]Book{}
+	err := r.DB.Find(&bookModels)
+	fmt.Println(bookModels)
 	handleError(err.Error, "no books found in database")
 	c.JSON(http.StatusOK, books)
 }
 
-func (r *Repository) AddBooks(c *gin.Context) {
-	books := &[]models.Book{}
+func (r *Repository) AddBook(c *gin.Context) {
+	book := Book{}
 
-	err := c.BindJSON(&books)
+	err := c.BindJSON(&book)
 	handleError(err, "cant bind the books")
 	err = r.DB.Create(&books).Error
 	handleError(err, "cant POST books")
@@ -101,5 +96,5 @@ func (r *Repository) DeleteBookByID(c *gin.Context) {
 	err := r.DB.Delete(book, id).Error
 	handleError(err, "book with the given id not found")
 
-	c.JSON(http.StatusOK, gin.H{"msg":"this worked"})
+	c.JSON(http.StatusOK, gin.H{"msg": "this worked"})
 }

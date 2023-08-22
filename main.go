@@ -17,17 +17,11 @@ func HandleError(err error, msg string) {
 
 func main() {
 
-	config := Configure("windows.env")
-
-	db, err := storage.Connect(config)
-	HandleError(err, "could not connect to the database")
-
-	//err = models.MigrateBooks(db)
-	//HandleError(err, "could not migrate")
-
-	r := Repository{
-		DB: db,
-	}
+	var postgres storage.Postgres
+	config, err := storage.ConfigPostgres("windows.env")
+	HandleError(err, "errror is postgress configuration")
+	postgres, err = storage.InitPostgres(config)
+	HandleError(err, "Erorr in connecting to postgress")
 
 	router := gin.Default()
 	r.SetupRoutes(router)

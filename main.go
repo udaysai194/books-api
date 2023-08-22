@@ -1,11 +1,9 @@
 package main
 
 import (
+	"books-api/storage"
 	"fmt"
 	"log"
-
-	"books-api/models"
-	"books-api/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,13 +17,13 @@ func HandleError(err error, msg string) {
 
 func main() {
 
-	config := Configure("UdayVM2.env")
+	config := Configure("windows.env")
 
 	db, err := storage.Connect(config)
 	HandleError(err, "could not connect to the database")
 
-	err = models.MigrateBooks(db)
-	HandleError(err, "could not migrate")
+	//err = models.MigrateBooks(db)
+	//HandleError(err, "could not migrate")
 
 	r := Repository{
 		DB: db,

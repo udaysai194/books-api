@@ -1,35 +1,16 @@
 package main
 
 import (
-	"net/http"
-	"os"
-
 	"books-api/models"
-	"books-api/storage"
+	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-	"gorm.io/gorm"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type Repository struct {
-	DB *gorm.DB
-}
-
-func Configure(envFile string) *storage.Config {
-	err := godotenv.Load(envFile)
-	HandleError(err, "could not load .env file")
-
-	config := &storage.Config{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		Password: os.Getenv("DB_PASS"),
-		User:     os.Getenv("DB_USER"),
-		DBName:   os.Getenv("DB_NAME"),
-		SSLMode:  os.Getenv("DB_SSLMODE"),
-	}
-
-	return config
+	DB *pgxpool.Pool
 }
 
 func (r *Repository) SetupRoutes(router *gin.Engine) {
@@ -40,37 +21,46 @@ func (r *Repository) SetupRoutes(router *gin.Engine) {
 }
 
 func (r *Repository) GetBooks(c *gin.Context) {
-	books := &[]models.Book{}
-	err := r.DB.Find(&books)
-	HandleError(err.Error, "no books found in database")
+	books := []models.Book{}
+	rows, err := r.DB.Query(c, "SELECT * FROM books;")
+
+	for rows.Next() {
+		var book models.Book
+		err := rows.Scan(&book.ID, &book.Title, &book.Author, &book.Price)
+		HandleError(err, "error fetching rows")
+		books = append(books, book)
+	}
+
+	fmt.Println()
+	HandleError(err, "no books found in database")
 	c.JSON(http.StatusOK, books)
 }
 
 func (r *Repository) AddBooks(c *gin.Context) {
-	books := &[]models.Book{}
+	// books := &[]models.Book{}
 
-	err := c.BindJSON(&books)
-	HandleError(err, "cant bind the books")
-	err = r.DB.Create(&books).Error
-	HandleError(err, "cant POST books")
+	// err := c.BindJSON(&books)
+	// HandleError(err, "cant bind the books")
+	// err = r.DB.Create(&books).Error
+	// HandleError(err, "cant POST books")
 }
 
 func (r *Repository) GetBookByID(c *gin.Context) {
-	book := models.Book{}
+	// book := models.Book{}
 
-	id := c.Param("id")
-	err := r.DB.Where("id = ?", id).First(&book).Error
-	HandleError(err, "book with the given id not found")
+	// id := c.Param("id")
+	// err := r.DB.Where("id = ?", id).First(&book).Error
+	// HandleError(err, "book with the given id not found")
 
-	c.JSON(http.StatusOK, book)
+	// c.JSON(http.StatusOK, book)
 }
 
 func (r *Repository) DeleteBookByID(c *gin.Context) {
-	book := models.Book{}
+	// book := models.Book{}
 
-	id := c.Param("id")
-	err := r.DB.Delete(book, id).Error
-	HandleError(err, "book with the given id not found")
+	// id := c.Param("id")
+	// err := r.DB.Delete(book, id).Error
+	// HandleError(err, "book with the given id not found")
 
-	c.JSON(http.StatusOK, gin.H{"msg": "this worked"})
+	// c.JSON(http.StatusOK, gin.H{"msg": "this worked"})
 }

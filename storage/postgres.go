@@ -2,19 +2,27 @@ package storage
 
 import (
 	"books-api/models"
+	"books-api/utils"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
+type Template interface {
+	GetAllBooks(ctx *gin.Context) ([]models.Book, error)
+	//addBooks(ctx *gin.Context)
+}
+
 type Postgres struct {
-	db *pgxpool.Pool
+	DB     *pgxpool.Pool
+	config *models.Config
 }
 
 func ConfigPostgres(envFile string) (*models.Config, error) {
@@ -46,9 +54,24 @@ func InitPostgres(config *models.Config) (Postgres, error) {
 	defer cancel()
 
 	db, err := pgxpool.Connect(ctx, dsn)
-	if err != nil {
-		return db, err
+
+	p := Postgres{}
+
+	p.DB = db
+
+	return p, err
+}
+
+func (pg Postgres) GetAllBooks(ctx *gin.Context) ([]models.Book, error) {
+	books := []models.Book{}
+	rows, err := pg.DB.Query(ctx, "SELECT * FROM books;")
+	for rows.Next() {
+		var book models.Book
+		err := rows.Scan(&book.ID, &book.Title, &book.Author, &book.Price)
+		utils.HandleError(err, "error fetching rows")
+		books = append(books, book)
 	}
 
-	return db, nil
+	utils.HandleError(err, "no books found in database")
+	return books, nil
 }

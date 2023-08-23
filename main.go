@@ -1,30 +1,18 @@
 package main
 
 import (
+	"books-api/api"
 	"books-api/storage"
-	"fmt"
-	"log"
-
-	"github.com/gin-gonic/gin"
+	"books-api/utils"
 )
-
-func HandleError(err error, msg string) {
-	if err != nil {
-		fmt.Println(msg)
-		log.Fatal(err)
-	}
-}
 
 func main() {
 
-	var postgres storage.Postgres
-	config, err := storage.ConfigPostgres("windows.env")
-	HandleError(err, "errror is postgress configuration")
-	postgres, err = storage.InitPostgres(config)
-	HandleError(err, "Erorr in connecting to postgress")
+	config, err := storage.ConfigPostgres("storage/windows.env")
+	utils.HandleError(err, "errror in postgress configuration")
 
-	router := gin.Default()
-	r.SetupRoutes(router)
-	router.Run("localhost:8080")
+	server, err := api.NewServer(config)
+	server.ListenAndServe("localhost", "8080")
+	server.SetupRoutes()
 
 }

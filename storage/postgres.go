@@ -5,7 +5,6 @@ import (
 	"books-api/utils"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -27,10 +26,7 @@ type Postgres struct {
 
 func ConfigPostgres(envFile string) (*models.Config, error) {
 	err := godotenv.Load(envFile)
-	if err != nil {
-		fmt.Println("error loading in env file")
-		log.Fatal(err)
-	}
+	utils.HandleError(err, "error loading .env file")
 
 	config := &models.Config{
 		Host:     os.Getenv("DB_HOST"),
@@ -55,9 +51,10 @@ func InitPostgres(config *models.Config) (Postgres, error) {
 
 	db, err := pgxpool.Connect(ctx, dsn)
 
-	p := Postgres{}
-
-	p.DB = db
+	p := Postgres{
+		DB:     db,
+		config: config,
+	}
 
 	return p, err
 }

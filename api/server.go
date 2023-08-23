@@ -16,19 +16,21 @@ type Server struct {
 	config *models.Config
 }
 
-func NewServer(config *models.Config) (*Server, error) {
-	var srv Server
-	var err error
+func NewServer() (*Server, error) {
+	srv := &Server{
+		config: nil,
+		router: gin.Default(),
+	}
 
-	srv.config = config
-	srv.router = gin.Default()
+	config, err := storage.ConfigPostgres("storage/windows.env")
+	utils.HandleError(err, "error in configuring postgres")
 	database, err = storage.InitPostgres(config)
 	utils.HandleError(err, "Erorr in connecting to postgress")
-
-	return &srv, nil
+	return srv, nil
 }
 
 func (s *Server) ListenAndServe(IP string, port string) {
+	s.SetupRoutes()
 	s.router.Run(IP + ":" + port)
 }
 
@@ -45,7 +47,7 @@ func (s *Server) GetBooks(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, books)
 }
 
-func (r *Server) AddBooks(c *gin.Context) {
+func (s *Server) AddBooks(c *gin.Context) {
 	// books := &[]models.Book{}
 
 	// err := c.BindJSON(&books)
@@ -54,7 +56,7 @@ func (r *Server) AddBooks(c *gin.Context) {
 	// HandleError(err, "cant POST books")
 }
 
-func (r *Server) GetBookByID(c *gin.Context) {
+func (s *Server) GetBookByID(c *gin.Context) {
 	// book := models.Book{}
 
 	// id := c.Param("id")
@@ -64,7 +66,7 @@ func (r *Server) GetBookByID(c *gin.Context) {
 	// c.JSON(http.StatusOK, book)
 }
 
-func (r *Server) DeleteBookByID(c *gin.Context) {
+func (s *Server) DeleteBookByID(c *gin.Context) {
 	// book := models.Book{}
 
 	// id := c.Param("id")

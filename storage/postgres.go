@@ -40,7 +40,7 @@ func ConfigPostgres(envFile string) (*models.Config, error) {
 	return config, err
 }
 
-func InitPostgres(config *models.Config) (Postgres, error) {
+func InitPostgres(config *models.Config) (Template, error) {
 
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -51,7 +51,7 @@ func InitPostgres(config *models.Config) (Postgres, error) {
 
 	db, err := pgxpool.Connect(ctx, dsn)
 
-	p := Postgres{
+	p := PostgresTest{
 		DB:     db,
 		config: config,
 	}

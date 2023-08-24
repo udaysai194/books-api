@@ -22,7 +22,7 @@ func NewServer() (*Server, error) {
 		router: gin.Default(),
 	}
 
-	config, err := storage.ConfigPostgres("storage/mac.env")
+	config, err := storage.ConfigPostgres("storage/windows.env")
 	utils.HandleError(err, "error in configuring postgres")
 	database, err = storage.InitPostgres(config)
 	utils.HandleError(err, "Erorr in connecting to postgress")

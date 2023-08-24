@@ -22,7 +22,7 @@ func NewServer() (*Server, error) {
 		router: gin.Default(),
 	}
 
-	config, err := storage.ConfigPostgres("storage/windows.env")
+	config, err := storage.ConfigPostgres("storage/mac.env")
 	utils.HandleError(err, "error in configuring postgres")
 	database, err = storage.InitPostgres(config)
 	utils.HandleError(err, "Erorr in connecting to postgress")
@@ -48,12 +48,12 @@ func (s *Server) GetBooks(ctx *gin.Context) {
 }
 
 func (s *Server) AddBooks(c *gin.Context) {
-	// books := &[]models.Book{}
+	books := []models.Book{}
 
-	// err := c.BindJSON(&books)
-	// HandleError(err, "cant bind the books")
-	// err = r.DB.Create(&books).Error
-	// HandleError(err, "cant POST books")
+	err := c.BindJSON(&books)
+	utils.HandleError(err, "cant bind the books")
+	database.AddBooks(c, books)
+
 }
 
 func (s *Server) GetBookByID(c *gin.Context) {

@@ -16,7 +16,7 @@ import (
 
 type Template interface {
 	GetAllBooks(ctx *gin.Context) ([]models.Book, error)
-	//addBooks(ctx *gin.Context)
+	AddBooks(ctx *gin.Context, books []models.Book) error
 }
 
 type Postgres struct {
@@ -71,4 +71,12 @@ func (pg Postgres) GetAllBooks(ctx *gin.Context) ([]models.Book, error) {
 
 	utils.HandleError(err, "no books found in database")
 	return books, nil
+}
+
+func (pg Postgres) AddBooks(ctx *gin.Context, books []models.Book) error {
+
+	for _, book := range books {
+		pg.DB.Exec(ctx, "INSERT INTO books (title, author, price) VALUES ($1, $2, $3);", book.Title, book.Author, book.Price)
+	}
+	return nil
 }

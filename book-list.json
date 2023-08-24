@@ -1,10 +1,12 @@
-[{
-    "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
-    "author": "Robert C. Martin",
-    "price": 750.00
-},
-{
-    "title": "Introduction to the Theory of Computation",
-    "author": "Michael Sipser",
-    "price": 1200.00
-}]
+[
+    {
+        "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
+        "author": "Robert C. Martin",
+        "price": 750.00
+    },
+    {
+        "title": "Introduction to the Theory of Computation",
+        "author": "Michael Sipser",
+        "price": 1200.00
+    }
+]
